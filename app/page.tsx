@@ -1,7 +1,283 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { apiBase, beginSso, clearAccessToken, getAccessToken } from './oauth';
-type Product = { id:string; name:string; slug:string; sku:string; category:string; priceMinor:number; inventoryQuantity:number; status:string; featured:boolean; updatedAt:string; shortDescription:string; description:string };
-const money = (minor:number) => new Intl.NumberFormat('en-ZA',{style:'currency',currency:'ZAR'}).format(minor/100);
-export default function AdminPage(){ const [token,setToken]=useState<string|null>(null); const [products,setProducts]=useState<Product[]>([]); const [error,setError]=useState(''); const [editing,setEditing]=useState<Product|null>(null); const [loading,setLoading]=useState(false); useEffect(()=>{setToken(getAccessToken())},[]); async function request(path:string,init:RequestInit={}){if(!token)throw new Error('Sign-in required.');const response=await fetch(`${apiBase}${path}`,{...init,headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`,'x-chefu-app':'admin'}});if(!response.ok)throw new Error((await response.json().catch(()=>null) as {message?:string}|null)?.message||'Request failed.');return response.json()} async function load(){setLoading(true);try{setProducts((await request('/products/admin')).products)}catch(e){setError(e instanceof Error?e.message:'Unable to load products.')}finally{setLoading(false)}} useEffect(()=>{if(token)void load()},[token]); if(!token)return <main className="login"><div className="panel"><p className="eyebrow">CHEFU TECHNOLOGIES</p><h1>Product administration</h1><p>Sign in with your CHEFU account. Administrator access is enforced by the CHEFU API.</p>{error&&<p className="error">{error}</p>}<button className="button" onClick={()=>void beginSso()}>Continue with CHEFU SSO</button></div></main>; return <div className="shell"><aside className="rail"><div className="brand">CHEFU <span>TECHNOLOGIES</span></div><nav><a className="active" href="#products">Products</a><a href="#audit">Audit log</a></nav><button className="button secondary" onClick={()=>{clearAccessToken();setToken(null)}}>Sign out</button></aside><main className="main"><p className="eyebrow">Commerce operations</p><h1 className="heading">Product overview</h1><section className="stats"><div className="stat">Total<strong>{products.length}</strong></div><div className="stat">Active<strong>{products.filter(p=>p.status==='ACTIVE').length}</strong></div><div className="stat">Draft<strong>{products.filter(p=>p.status==='DRAFT').length}</strong></div><div className="stat">Out of stock<strong>{products.filter(p=>p.inventoryQuantity===0||p.status==='OUT_OF_STOCK').length}</strong></div></section><div className="toolbar"><input placeholder="Search products" onChange={e=>setProducts(current=>current.filter(p=>p.name.toLowerCase().includes(e.target.value.toLowerCase())||p.sku.toLowerCase().includes(e.target.value.toLowerCase())))} /><button className="button" onClick={()=>setEditing({id:'',name:'',slug:'',sku:'',category:'',priceMinor:0,inventoryQuantity:0,status:'DRAFT',featured:false,updatedAt:'',shortDescription:'',description:''})}>New product</button></div>{error&&<p className="error">{error}</p>}<section className="panel"><table className="table"><thead><tr><th>Product</th><th>SKU</th><th>Price</th><th>Stock</th><th>Status</th><th /></tr></thead><tbody>{loading?<tr><td colSpan={6}>Loading…</td></tr>:products.map(product=><tr key={product.id}><td><strong>{product.name}</strong><br/><small>{product.category}</small></td><td>{product.sku}</td><td>{money(product.priceMinor)}</td><td>{product.inventoryQuantity}</td><td><span className={`badge ${product.status.toLowerCase()}`}>{product.status}</span></td><td><div className="actions"><button className="button secondary" onClick={()=>setEditing(product)}>Edit</button><button className="button secondary" onClick={async()=>{if(!confirm(`Archive ${product.name}?`))return;await request(`/products/${product.id}`,{method:'DELETE'});await load()}}>Archive</button></div></td></tr>)}</tbody></table></section>{editing&&<ProductForm product={editing} close={()=>setEditing(null)} save={async payload=>{await request(editing.id?`/products/${editing.id}`:'/products',{method:editing.id?'PUT':'POST',body:JSON.stringify(payload)});setEditing(null);await load()}} />}</main></div> }
-function ProductForm({product,close,save}:{product:Product;close:()=>void;save:(payload:Record<string,unknown>)=>Promise<void>}){const [value,setValue]=useState(product);const [error,setError]=useState('');return <div className="modal"><section className="panel"><div className="toolbar"><h2>{product.id?'Edit product':'Create product'}</h2><button className="button secondary" onClick={close}>Close</button></div><form className="form" onSubmit={async e=>{e.preventDefault();try{await save({...value,priceMinor:Number(value.priceMinor),inventoryQuantity:Number(value.inventoryQuantity),lowStockThreshold:5})}catch(err){setError(err instanceof Error?err.message:'Save failed.')}}}><label>Name<input value={value.name} onChange={e=>setValue({...value,name:e.target.value})} required/></label><label>SKU<input value={value.sku} onChange={e=>setValue({...value,sku:e.target.value})} required/></label><label>Slug<input value={value.slug} onChange={e=>setValue({...value,slug:e.target.value})} required/></label><label>Category<input value={value.category} onChange={e=>setValue({...value,category:e.target.value})} required/></label><label>Price in cents<input type="number" min="0" step="1" value={value.priceMinor} onChange={e=>setValue({...value,priceMinor:Number(e.target.value)})} required/></label><label>Inventory<input type="number" min="0" step="1" value={value.inventoryQuantity} onChange={e=>setValue({...value,inventoryQuantity:Number(e.target.value)})} required/></label><label>Status<select value={value.status} onChange={e=>setValue({...value,status:e.target.value})}><option>ACTIVE</option><option>DRAFT</option><option>OUT_OF_STOCK</option><option>ARCHIVED</option></select></label><label>Short description<input value={value.shortDescription} onChange={e=>setValue({...value,shortDescription:e.target.value})}/></label><label className="wide">Description<textarea value={value.description} onChange={e=>setValue({...value,description:e.target.value})}/></label>{error&&<p className="error wide">{error}</p>}<button className="button wide">Save product</button></form></section></div>}
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+    Archive,
+    Boxes,
+    Check,
+    Grid2X2,
+    List,
+    LogOut,
+    PackagePlus,
+    Plus,
+    Search,
+    Star,
+} from "lucide-react";
+import { beginSso, clearAccessToken, getAccessToken } from "./oauth";
+import { createAdminRequest, saveProduct } from "./admin-api";
+import {
+    blankProduct,
+    statusLabel,
+    type Product,
+    type ProductDraft,
+    type Status,
+} from "./admin-types";
+import { Metric } from "./Metric";
+import { ProductCard } from "./ProductCard";
+import { ProductTable } from "./ProductTable";
+import { ProductStudio } from "./ProductStudio";
+
+export default function AdminPage() {
+    const [token, setToken] = useState<string | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [editing, setEditing] = useState<ProductDraft | null>(null);
+    const [query, setQuery] = useState("");
+    const [status, setStatus] = useState<Status | "ALL">("ALL");
+    const [sort, setSort] = useState("updated");
+    const [view, setView] = useState<"grid" | "table">("table");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    useEffect(() => setToken(getAccessToken()), []);
+    const request = createAdminRequest(token);
+    async function load() {
+        setLoading(true);
+        setError("");
+        try {
+            setProducts((await request("/products/admin")).products as Product[]);
+        } catch (reason) {
+            setError(
+                reason instanceof Error ? reason.message : "Unable to load products.",
+            );
+        } finally {
+            setLoading(false);
+        }
+    }
+    useEffect(() => {
+        if (token) void load();
+    }, [token]);
+
+    const filtered = useMemo(
+        () =>
+            products
+                .filter(
+                    (product) =>
+                        (status === "ALL" || product.status === status) &&
+                        (!query.trim() ||
+                            `${product.name} ${product.sku} ${product.category}`
+                                .toLowerCase()
+                                .includes(query.trim().toLowerCase())),
+                )
+                .sort((a, b) =>
+                    sort === "name"
+                        ? a.name.localeCompare(b.name)
+                        : sort === "price"
+                            ? b.priceMinor - a.priceMinor
+                            : sort === "stock"
+                                ? a.inventoryQuantity - b.inventoryQuantity
+                                : b.updatedAt.localeCompare(a.updatedAt),
+                ),
+        [products, query, status, sort],
+    );
+    const metrics = {
+        total: products.length,
+        active: products.filter((p) => p.status === "ACTIVE").length,
+        low: products.filter(
+            (p) =>
+                p.inventoryQuantity > 0 && p.inventoryQuantity <= p.lowStockThreshold,
+        ).length,
+        out: products.filter(
+            (p) => p.status === "OUT_OF_STOCK" || p.inventoryQuantity === 0,
+        ).length,
+        featured: products.filter((p) => p.featured).length,
+    };
+
+    if (!token)
+        return (
+            <main className="login">
+                <section className="login-card">
+                    <p className="eyebrow">CHEFU TECHNOLOGIES</p>
+                    <h1>Product administration</h1>
+                    <p>Manage the CHEFU physical product line with your CHEFU account.</p>
+                    {error && <p className="error">{error}</p>}
+                    <button className="primary" onClick={() => void beginSso()}>
+                        Continue
+                    </button>
+                </section>
+            </main>
+        );
+    return (
+        <div className="app-shell">
+            <aside className="sidebar">
+                <div className="logo">
+                    CHEFU <span>ADMIN</span>
+                </div>
+                <p className="sidebar-caption">Commerce operations</p>
+                <nav>
+                    <a className="selected" href="#catalog">
+                        <Boxes size={17} /> Catalog
+                    </a>
+                    <a href="#activity">
+                        <List size={17} /> Activity
+                    </a>
+                </nav>
+                <button
+                    className="logout"
+                    onClick={() => {
+                        clearAccessToken();
+                        setToken(null);
+                    }}
+                >
+                    <LogOut size={16} /> Sign out
+                </button>
+            </aside>
+            <main className="content">
+                <header className="page-header">
+                    <div>
+                        <p className="eyebrow">Catalog</p>
+                        <h1>Products</h1>
+                        <p className="muted">
+                            Manage what customers see, buy, and receive.
+                        </p>
+                    </div>
+                    <button
+                        className="primary"
+                        onClick={() => setEditing({ ...blankProduct })}
+                    >
+                        <Plus size={18} /> Add product
+                    </button>
+                </header>
+                <section className="metrics">
+                    <Metric
+                        label="Total products"
+                        value={metrics.total}
+                        icon={<Boxes />}
+                    />
+                    <Metric
+                        label="Active"
+                        value={metrics.active}
+                        icon={<Check />}
+                        tone="green"
+                    />
+                    <Metric
+                        label="Low stock"
+                        value={metrics.low}
+                        icon={<PackagePlus />}
+                        tone="amber"
+                    />
+                    <Metric
+                        label="Out of stock"
+                        value={metrics.out}
+                        icon={<Archive />}
+                        tone="red"
+                    />
+                    <Metric
+                        label="Featured"
+                        value={metrics.featured}
+                        icon={<Star />}
+                        tone="cyan"
+                    />
+                </section>
+                <section className="catalog-panel">
+                    <div className="toolbar">
+                        <label className="search">
+                            <Search size={17} />
+                            <input
+                                value={query}
+                                onChange={(event) => setQuery(event.target.value)}
+                                placeholder="Search name, SKU, or category"
+                            />
+                        </label>
+                        <div className="toolbar-actions">
+                            <select
+                                value={status}
+                                onChange={(event) =>
+                                    setStatus(event.target.value as Status | "ALL")
+                                }
+                            >
+                                <option value="ALL">All statuses</option>
+                                {Object.entries(statusLabel).map(([key, label]) => (
+                                    <option key={key} value={key}>
+                                        {label}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                value={sort}
+                                onChange={(event) => setSort(event.target.value)}
+                            >
+                                <option value="updated">Recently updated</option>
+                                <option value="name">Name</option>
+                                <option value="price">Highest price</option>
+                                <option value="stock">Lowest stock</option>
+                            </select>
+                            <div className="view-toggle">
+                                <button
+                                    className={view === "table" ? "active" : ""}
+                                    title="Table view"
+                                    onClick={() => setView("table")}
+                                >
+                                    <List size={17} />
+                                </button>
+                                <button
+                                    className={view === "grid" ? "active" : ""}
+                                    title="Grid view"
+                                    onClick={() => setView("grid")}
+                                >
+                                    <Grid2X2 size={17} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {error && <p className="error">{error}</p>}
+                    {loading ? (
+                        <div className="empty">Loading catalog...</div>
+                    ) : filtered.length === 0 ? (
+                        <div className="empty">
+                            <Boxes size={28} />
+                            <p>No products match this view.</p>
+                            <button
+                                className="secondary"
+                                onClick={() => setEditing({ ...blankProduct })}
+                            >
+                                Add your first product
+                            </button>
+                        </div>
+                    ) : view === "table" ? (
+                        <ProductTable
+                            products={filtered}
+                            edit={setEditing}
+                            archive={async (product) => {
+                                if (!confirm(`Archive ${product.name}?`)) return;
+                                await request(`/products/${product.id}`, { method: "DELETE" });
+                                await load();
+                            }}
+                        />
+                    ) : (
+                        <div className="product-grid">
+                            {filtered.map((product) => (
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    edit={setEditing}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </section>
+            </main>
+            {editing && (
+                <ProductStudio
+                    initial={editing}
+                    close={() => setEditing(null)}
+                    request={request}
+                    save={async (draft) => {
+                        await saveProduct(request, draft);
+                        setEditing(null);
+                        await load();
+                    }}
+                />
+            )}
+        </div>
+    );
+}
