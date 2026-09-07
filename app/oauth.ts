@@ -26,7 +26,7 @@ export async function beginSso() {
     const state = crypto.randomUUID();
     sessionStorage.setItem(stateKey, state);
     const params = new URLSearchParams({
-        client_id: "chefu-admin-web",
+        client_id: "chefu-merchant-web",
         redirect_uri: `${window.location.origin}/auth/callback`,
         response_type: "code",
         scope: "openid profile email admin:manage",
@@ -46,7 +46,7 @@ export async function completeSso(code: string, state: string | null) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             grant_type: "authorization_code",
-            client_id: "chefu-admin-web",
+            client_id: "chefu-merchant-web",
             redirect_uri: `${window.location.origin}/auth/callback`,
             code,
             code_verifier: verifier,
