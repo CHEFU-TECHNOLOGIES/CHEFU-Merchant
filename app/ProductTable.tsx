@@ -1,4 +1,7 @@
-import { Archive, Edit3, PackagePlus } from "lucide-react";
+"use client";
+
+import { Archive, Edit3, MoreHorizontal, PackagePlus } from "lucide-react";
+import { useState } from "react";
 import { statusLabel, type Product } from "./merchant-types";
 import { formatZAR } from "./pricing";
 
@@ -11,6 +14,8 @@ export function ProductTable({
     edit: (product: Product) => void;
     archive: (product: Product) => Promise<void>;
 }) {
+    const [openMenu, setOpenMenu] = useState<string | null>(null);
+
     return (
         <div className="table-wrap">
             <table>
@@ -65,21 +70,21 @@ export function ProductTable({
                                     {new Date(product.updatedAt).toLocaleDateString("en-ZA")}
                                 </td>
                                 <td>
-                                    <div className="row-actions">
+                                    <div className="row-actions row-menu-wrap">
                                         <button
-                                            title="Edit"
-                                            aria-label={`Edit ${product.name}`}
-                                            onClick={() => edit(product)}
+                                            title="Product actions"
+                                            aria-label={`Actions for ${product.name}`}
+                                            aria-expanded={openMenu === product.id}
+                                            onClick={() => setOpenMenu(openMenu === product.id ? null : product.id)}
                                         >
-                                            <Edit3 size={16} />
+                                            <MoreHorizontal size={17} />
                                         </button>
-                                        <button
-                                            title="Archive"
-                                            aria-label={`Archive ${product.name}`}
-                                            onClick={() => void archive(product)}
-                                        >
-                                            <Archive size={16} />
-                                        </button>
+                                        {openMenu === product.id && (
+                                            <div className="row-menu" role="menu">
+                                                <button role="menuitem" onClick={() => { setOpenMenu(null); edit(product); }}><Edit3 size={15} /> Edit product</button>
+                                                <button role="menuitem" className="menu-danger" onClick={() => { setOpenMenu(null); void archive(product); }}><Archive size={15} /> Archive product</button>
+                                            </div>
+                                        )}
                                     </div>
                                 </td>
                             </tr>
