@@ -51,7 +51,7 @@ export const blankProduct: ProductDraft = {
     priceMinor: 0,
     inventoryQuantity: 0,
     lowStockThreshold: 5,
-    status: "DRAFT",
+    status: "ACTIVE",
     featured: false,
     shortDescription: "",
     description: "",

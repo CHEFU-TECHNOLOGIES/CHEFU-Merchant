@@ -90,6 +90,9 @@ export function useProductStudio(
         if (!Number.isInteger(draft.inventoryQuantity) || draft.inventoryQuantity < 0) {
             return "Inventory must be a whole number of zero or more.";
         }
+        if (draft.status === "ACTIVE" && draft.inventoryQuantity === 0) {
+            return "Active products need stock. Set inventory above zero or choose Out of stock.";
+        }
         if (!Number.isInteger(draft.lowStockThreshold) || draft.lowStockThreshold < 0) {
             return "Low-stock threshold must be a whole number of zero or more.";
         }
