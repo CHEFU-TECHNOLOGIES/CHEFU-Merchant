@@ -19,7 +19,17 @@
     --radius-md: 11px;
     --radius-lg: 16px;
     color-scheme: light;
+    --sidebar: hsl(0 0% 98%);
+    --sidebar-foreground: hsl(240 5.3% 26.1%);
+    --sidebar-primary: hsl(240 5.9% 10%);
+    --sidebar-primary-foreground: hsl(0 0% 98%);
+    --sidebar-accent: hsl(240 4.8% 95.9%);
+    --sidebar-accent-foreground: hsl(240 5.9% 10%);
+    --sidebar-border: hsl(220 13% 91%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
+
+@custom-variant dark (&:is(.dark *));
 
 :root[data-theme="dark"] {
     --bg: #111b1e;
@@ -39,6 +49,14 @@
     --shadow-sm: 0 2px 10px rgb(0 0 0 / 20%);
     --shadow-lg: 0 24px 70px rgb(0 0 0 / 45%);
     color-scheme: dark;
+    --sidebar: #10252e;
+    --sidebar-foreground: #e7f0f0;
+    --sidebar-primary: #55c8d1;
+    --sidebar-primary-foreground: #10252e;
+    --sidebar-accent: #1b3d48;
+    --sidebar-accent-foreground: #ffffff;
+    --sidebar-border: #31474b;
+    --sidebar-ring: #55c8d1;
 }
 
 body { background: var(--bg); color: var(--text); transition: background-color .2s, color .2s; }
@@ -128,4 +146,26 @@ table tbody tr:hover { background: var(--surface-muted); }
     .two-col { grid-template-columns: 1fr; }
     .media-preview { align-items: stretch; flex-direction: column; }
     .media-preview img { width: 100%; height: 190px; }
+}
+
+.dark {
+    --sidebar: hsl(240 5.9% 10%);
+    --sidebar-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-primary: hsl(224.3 76.3% 48%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(240 3.7% 15.9%);
+    --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+    --sidebar-border: hsl(240 3.7% 15.9%);
+    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }

@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
+import "./tailwind.css";
 import "./styles.css";
 import "./product-studio.css";
 import "./design-system.css";
+import { Toaster } from "./ui/sonner";
+import { TooltipProvider } from "./ui/tooltip";
 export const metadata = {
     title: "Merchant",
     description: "CHEFU merchant product management.",
@@ -16,7 +19,10 @@ export default function Layout({ children }: { children: ReactNode }) {
                     }}
                 />
             </head>
-            <body>{children}</body>
+            <body>
+                <TooltipProvider>{children}</TooltipProvider>
+                <Toaster position="bottom-right" />
+            </body>
         </html>
     );
 }
