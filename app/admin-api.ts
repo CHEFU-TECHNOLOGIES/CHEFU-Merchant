@@ -23,6 +23,8 @@ export function createAdminRequest(token: string | null) {
     };
 }
 
+export type AdminRequest = ReturnType<typeof createAdminRequest>;
+
 export async function saveProduct(
     request: ReturnType<typeof createAdminRequest>,
     draft: ProductDraft,

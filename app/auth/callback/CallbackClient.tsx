@@ -1,27 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { completeSso } from "../../oauth";
+import { useSsoCallback } from "../../hooks/useSsoCallback";
 
 export default function CallbackClient() {
-    const router = useRouter();
-    const params = useSearchParams();
-    const [error, setError] = useState("");
-    useEffect(() => {
-        const code = params.get("code");
-        if (!code) {
-            setError(
-                params.get("error_description") || "Missing authorization code.",
-            );
-            return;
-        }
-        void completeSso(code, params.get("state"))
-            .then(() => router.replace("/"))
-            .catch((reason: unknown) =>
-                setError(reason instanceof Error ? reason.message : "Sign-in failed."),
-            );
-    }, [params, router]);
+    const error = useSsoCallback();
     return (
         <main className="login">
             <div className="login-card">
