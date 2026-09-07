@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { clearAccessToken, getAccessToken } from "../oauth";
-import { createAdminRequest } from "../admin-api";
+import { createMerchantRequest } from "../merchant-api";
 
-export function useAdminAuth() {
+export function useMerchantAuth() {
     const [token, setToken] = useState<string | null>(null);
-    const request = useMemo(() => createAdminRequest(token), [token]);
+    const request = useMemo(() => createMerchantRequest(token), [token]);
 
     useEffect(() => {
         setToken(getAccessToken());

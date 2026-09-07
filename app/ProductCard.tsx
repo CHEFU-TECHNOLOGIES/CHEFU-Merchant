@@ -1,5 +1,5 @@
 import { Edit3, PackagePlus } from "lucide-react";
-import { money, statusLabel, type Product } from "./admin-types";
+import { money, statusLabel, type Product } from "./merchant-types";
 
 export function ProductCard({ product, edit }: { product: Product; edit: (product: Product) => void }) {
     const image = product.thumbnail || product.images[0]?.url;

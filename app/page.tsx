@@ -1,15 +1,15 @@
 "use client";
 
-import { AdminDashboard } from "./AdminDashboard";
-import { AdminLogin } from "./AdminLogin";
-import { useAdminAuth } from "./hooks/useAdminAuth";
+import { MerchantDashboard } from "./MerchantDashboard";
+import { MerchantLogin } from "./MerchantLogin";
+import { useMerchantAuth } from "./hooks/useMerchantAuth";
 import { useCatalog } from "./hooks/useCatalog";
 
-export default function AdminPage() {
-    const { token, request, signOut } = useAdminAuth();
+export default function MerchantPage() {
+    const { token, request, signOut } = useMerchantAuth();
     const catalog = useCatalog(token, request);
 
-    if (!token) return <AdminLogin error={catalog.error} />;
+    if (!token) return <MerchantLogin error={catalog.error} />;
 
-    return <AdminDashboard catalog={catalog} signOut={signOut} />;
+    return <MerchantDashboard catalog={catalog} signOut={signOut} />;
 }

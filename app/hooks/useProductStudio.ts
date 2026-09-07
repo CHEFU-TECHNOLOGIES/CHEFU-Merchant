@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { uploadProductImage, type AdminRequest } from "../admin-api";
-import type { ProductDraft } from "../admin-types";
+import { uploadProductImage, type MerchantRequest } from "../merchant-api";
+import type { ProductDraft } from "../merchant-types";
 
 export function useProductStudio(
     initial: ProductDraft,
-    request: AdminRequest,
+    request: MerchantRequest,
     save: (draft: ProductDraft) => Promise<void>,
 ) {
     const [draft, setDraft] = useState(initial);

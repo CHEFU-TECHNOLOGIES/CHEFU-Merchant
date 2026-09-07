@@ -13,7 +13,7 @@ export default function CallbackClient() {
                     <>
                         <p className="error">{error}</p>
                         <a className="primary" href="/">
-                            Return to admin
+                            Return to merchant
                         </a>
                     </>
                 ) : (

@@ -14,10 +14,10 @@ import { Metric } from "./Metric";
 import { ProductCard } from "./ProductCard";
 import { ProductTable } from "./ProductTable";
 import { ProductStudio } from "./ProductStudio";
-import { statusLabel, type Status } from "./admin-types";
+import { statusLabel, type Status } from "./merchant-types";
 import type { useCatalog } from "./hooks/useCatalog";
 
-export function AdminDashboard({
+export function MerchantDashboard({
     catalog,
     signOut,
 }: {
@@ -49,7 +49,7 @@ export function AdminDashboard({
         <div className="app-shell">
             <aside className="sidebar">
                 <div className="logo">
-                    CHEFU <span>ADMIN</span>
+                    CHEFU <span>MERCHANT</span>
                 </div>
                 <p className="sidebar-caption">Commerce operations</p>
                 <nav>

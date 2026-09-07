@@ -1,9 +1,10 @@
 const apiBase = (
     process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.chefu.co.za"
 ).replace(/\/$/, "");
-const verifierKey = "chefu-admin-pkce-verifier";
-const tokenKey = "chefu-admin-access-token";
-const stateKey = "chefu-admin-oauth-state";
+const verifierKey = "chefu-merchant-pkce-verifier";
+const tokenKey = "chefu-merchant-access-token";
+const stateKey = "chefu-merchant-oauth-state";
+const nonceKey = "chefu-merchant-oauth-nonce";
 
 function base64Url(bytes: ArrayBuffer) {
     return btoa(String.fromCharCode(...new Uint8Array(bytes)))
@@ -24,7 +25,9 @@ export async function beginSso() {
     );
     sessionStorage.setItem(verifierKey, verifier);
     const state = crypto.randomUUID();
+    const nonce = crypto.randomUUID();
     sessionStorage.setItem(stateKey, state);
+    sessionStorage.setItem(nonceKey, nonce);
     const params = new URLSearchParams({
         client_id: "chefu-merchant-web",
         redirect_uri: `${window.location.origin}/auth/callback`,
@@ -32,6 +35,7 @@ export async function beginSso() {
         scope: "openid profile email admin:manage",
         code_challenge: challenge,
         code_challenge_method: "S256",
+        nonce,
         state,
     });
     window.location.assign(`${apiBase}/oauth/authorize?${params}`);
@@ -58,6 +62,7 @@ export async function completeSso(code: string, state: string | null) {
         throw new Error("CHEFU SSO returned no access token.");
     sessionStorage.removeItem(verifierKey);
     sessionStorage.removeItem(stateKey);
+    sessionStorage.removeItem(nonceKey);
     sessionStorage.setItem(tokenKey, data.access_token);
 }
 export { apiBase };

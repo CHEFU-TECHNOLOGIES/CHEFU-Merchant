@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { saveProduct } from "../admin-api";
-import { blankProduct, type Product, type ProductDraft, type Status } from "../admin-types";
-import type { AdminRequest } from "../admin-api";
+import { saveProduct } from "../merchant-api";
+import { blankProduct, type Product, type ProductDraft, type Status } from "../merchant-types";
+import type { MerchantRequest } from "../merchant-api";
 
 export type CatalogSort = "updated" | "name" | "price" | "stock";
 
-export function useCatalog(token: string | null, request: AdminRequest) {
+export function useCatalog(token: string | null, request: MerchantRequest) {
     const [products, setProducts] = useState<Product[]>([]);
     const [editing, setEditing] = useState<ProductDraft | null>(null);
     const [query, setQuery] = useState("");

@@ -1,7 +1,7 @@
 import { Plus, Upload, X } from "lucide-react";
 import { type ReactNode } from "react";
-import { statusLabel, type ProductDraft, type Status } from "./admin-types";
-import type { AdminRequest } from "./admin-api";
+import { statusLabel, type ProductDraft, type Status } from "./merchant-types";
+import type { MerchantRequest } from "./merchant-api";
 import { useProductStudio } from "./hooks/useProductStudio";
 
 export function ProductStudio({
@@ -13,7 +13,7 @@ export function ProductStudio({
     initial: ProductDraft;
     close: () => void;
     save: (draft: ProductDraft) => Promise<void>;
-    request: AdminRequest;
+    request: MerchantRequest;
 }) {
     const studio = useProductStudio(initial, request, save);
     const {

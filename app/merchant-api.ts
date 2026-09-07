@@ -1,7 +1,7 @@
 import { apiBase } from "./oauth";
-import type { Product, ProductDraft } from "./admin-types";
+import type { Product, ProductDraft } from "./merchant-types";
 
-export function createAdminRequest(token: string | null) {
+export function createMerchantRequest(token: string | null) {
     return async function request(path: string, init: RequestInit = {}) {
         if (!token) throw new Error("Sign-in required.");
         const response = await fetch(`${apiBase}${path}`, {
@@ -9,7 +9,7 @@ export function createAdminRequest(token: string | null) {
             headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
-                "x-chefu-app": "admin",
+                "x-chefu-app": "merchant",
                 ...(init.headers || {}),
             },
         });
@@ -23,10 +23,10 @@ export function createAdminRequest(token: string | null) {
     };
 }
 
-export type AdminRequest = ReturnType<typeof createAdminRequest>;
+export type MerchantRequest = ReturnType<typeof createMerchantRequest>;
 
 export async function saveProduct(
-    request: ReturnType<typeof createAdminRequest>,
+    request: MerchantRequest,
     draft: ProductDraft,
 ) {
     return request(draft.id ? `/products/${draft.id}` : "/products", {
@@ -36,7 +36,7 @@ export async function saveProduct(
 }
 
 export async function uploadProductImage(
-    request: ReturnType<typeof createAdminRequest>,
+    request: MerchantRequest,
     file: File,
 ) {
     const imageBase64 = await toDataUrl(file);
