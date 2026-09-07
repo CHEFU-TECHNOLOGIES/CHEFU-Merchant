@@ -67,7 +67,4 @@ export const statusLabel: Record<Status, string> = {
     OUT_OF_STOCK: "Out of stock",
 };
 
-export const money = (minor: number) =>
-    new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR" }).format(
-        minor / 100,
-    );
+export { formatZAR as money } from "./pricing";

@@ -81,8 +81,12 @@ export function useCatalog(token: string | null, request: MerchantRequest) {
     }
 
     async function archive(product: Product) {
-        await request(`/products/${product.id}`, { method: "DELETE" });
-        await load();
+        try {
+            await request(`/products/${product.id}`, { method: "DELETE" });
+            await load();
+        } catch {
+            setError("Unable to archive product. Please try again.");
+        }
     }
 
     async function save(draft: ProductDraft) {

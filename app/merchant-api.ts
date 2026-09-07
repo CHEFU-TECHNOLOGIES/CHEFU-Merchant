@@ -44,7 +44,7 @@ export async function uploadProductImage(
         method: "POST",
         body: JSON.stringify({ imageBase64, contentType: file.type, alt: file.name }),
     });
-    return response.url as string;
+    return response as { url: string; publicId?: string };
 }
 
 function toDataUrl(file: File) {
